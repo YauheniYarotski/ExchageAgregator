@@ -33,4 +33,9 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     var migrations = MigrationConfig()
     migrations.add(model: Todo.self, database: .sqlite)
     services.register(migrations)
+  
+  let websockets = NIOWebSocketServer.default()
+  sockets(websockets)
+  services.register(websockets, as: WebSocketServer.self)
+
 }
