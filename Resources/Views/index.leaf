@@ -1,0 +1,202 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Depth</title>
+    <style>
+      .row {
+        display: flex;
+      }
+
+      .column {
+        flex: 1;
+      }
+
+      .cell {
+        border: 1px solid #868686;
+      }
+
+      .exchanges {
+        flex-wrap: wrap;
+      }
+
+      .symbols {
+        flex-wrap: wrap;
+      }
+
+      .exchange {
+        /*background-color: #dedede;*/
+        /*margin: 0 5px;*/
+        padding: 20px;
+        /*border-radius: 10px;*/
+        /*box-shadow: 0px 0px 0.5px 0.5px #c3c3c3;*/
+      }
+
+      .symbol {
+        /*background-color: #f3f3f3;*/
+        /*margin: 3px;*/
+        /*padding: 3px;*/
+        /*border-radius: 5px;*/
+      }
+
+      .asks {
+        /*margin-right: 10px;*/
+        /*background-color: #EFC0C0;*/
+      }
+
+      .bids {
+        /*background-color: #CEF6CE;*/
+      }
+        
+      .total_asks {
+        /*margin-right: 10px;*/
+        /*background-color: #EFC9C0;*/
+      }
+        
+      .total_bids {
+        /*background-color: #CEECCE;*/
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script>
+      const app = document.getElementById('app');
+
+      const h = (tag, props, children) => {
+        const el = document.createElement(tag);
+
+        for (attribute in props) {
+          if (attribute === 'className') {
+            el.setAttribute('class', props[attribute]);
+          } else {
+            el.setAttribute(attribute, props[attribute])
+          }
+        }
+
+        if (Array.isArray(children)) {
+          for (child of children) {
+            el.appendChild(child);
+          }
+        } else {
+          el.innerHTML = children;
+        }
+
+        return el;
+      };
+
+      const renderTable = (list, className) => {
+        let rows = [];
+
+        for (const item in list) {
+          rows.push(h('div', { className: 'row' }, [
+            h('div', { className: 'column cell' }, list[item][0]),
+            h('div', { className: 'column cell' }, list[item][1])
+          ]));
+        }
+
+        return h('div', { className: `table ${className}` }, rows);
+      }
+      
+//      const renderTotal = (item, title, className) => {
+//        return h('div', { className: `table ${className}` }, 
+//                 h('div', { className: 'row' }, [
+//                    h('div', { className: 'column cell' }, `${title}`),
+//                    h('div', { className: 'column cell' }, Number(item))
+//                 ])
+//                );
+//      };
+
+      renderBook = book =>
+        h('div', { className: 'column symbol' }, [
+          h('h5', {}, `${book.symbol}`),
+          h('div', { className: 'row' }, [
+            h('div', { className: 'column' }, [
+              // h('div', {}, 'Bids'),
+              h('div', { className: 'row' }, [
+                h('div', { className: 'column cell' }, 'Bids'), 
+                h('div', { className: 'column cell' }, book.total_bids)
+              ]), 
+//              renderTotal(book.total_bids, 'total_bids', 'total_bids'),
+              renderTable(book.bids, 'bids')
+            ]),
+            h('div', { className: 'column' }, [                      
+              // h('div', {}, 'Asks'),
+              h('div', { className: 'row' }, [
+                h('div', { className: 'column cell' }, 'Asks'), 
+                h('div', { className: 'column cell' }, book.total_asks)
+              ]),          
+              renderTable(book.asks, 'asks')
+            ]),
+          ])
+        ]);
+
+      renderExchange = exchange => {
+        // exchange.books.sort((a, b) => {
+        //   if (a.symbol < b.symbol) {
+        //     return 1;
+        //   }
+
+        //   if (a.symbol === b.symbol) {
+        //     return 0;
+        //   }
+
+        //   return -1;
+        // });
+
+        return h(
+          'div',
+          { className: 'column exchange' },
+          [
+            h('div', {}, [
+              h('h5', {}, `${exchange.exchange_title}`)
+            ]),
+            h('div', { className: 'row symbols' }, exchange.books.map(renderBook))
+          ]
+        );
+      }
+      
+      const renderData = data => {
+        app.removeChild(app.firstChild);
+
+        // data.sort((a, b) => {
+        //   if (a.exchange_title < b.exchange_title) {
+        //     return -1;
+        //   }
+
+        //   if (a.exchange_title === b.exchange_title) {
+        //     return 0;
+        //   }
+
+        //   return 1;
+        // });
+
+        app.appendChild(
+          h('div', {}, [
+            h('div', {}, `${new Date()}`),
+            h('div', { className: 'row exchanges' }, data.map(renderExchange))
+          ])
+        );
+      };
+
+      const socket = new WebSocket('ws://213.136.80.2:8081/books');  
+      // const socket = new WebSocket('ws://127.0.0.1:8080/books');
+      socket.onopen = event => console.log('Connected', event);
+      socket.onclose = event => console.log('Closed', event);
+
+      let rendered = false;
+
+      socket.onmessage = event => {
+        // if (rendered) {
+        //   return;
+        // }
+
+        requestAnimationFrame(() => {
+          renderData(JSON.parse(event.data));
+        });
+        rendered = true;
+      }
+  
+      socket.onerror = error => console.error('Error', error);
+   </script>
+  </body>
+</html>

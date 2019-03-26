@@ -48,7 +48,7 @@ class BitfinexWs {
           let priceSnap = BitfinexBookPriceSnapshot(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
           let priceSnapshotResponse = BitfinexBookOnePriceSnapshotResponse(chanId: chanId, priceSnapshot: priceSnap)
           self.onePriceBookResponse?(priceSnapshotResponse)
-          print(text)
+//          print(text)
           
         } else if let draftPricesSnap = parsedArrayWithAny[1] as? [[Double]] {
           var pricesSnapshor = [BitfinexBookPriceSnapshot]()
