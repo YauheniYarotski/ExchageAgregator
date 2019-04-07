@@ -12,6 +12,8 @@ import ObjectMapper
 
 class BitfinexWs {
   
+  var chains: [Int: String] = [:]
+  
   var echoResponse: ((_ echoReponse: BitfinexBookResponse)->())?
   var fullBookResponse: ((_ fullPricesSnapshotResponse: BitfinexBookAllPricesSnapshotResponse)->())?
   var onePriceBookResponse: ((_ onePriceSnapshotResponse: BitfinexBookOnePriceSnapshotResponse)->())?
@@ -41,25 +43,26 @@ class BitfinexWs {
     ws.onText { ws, text in
       //print(text)
       
+      //geting snap of all prices or single snape
       if let parsedArrayWithAny = Mapper<BitfinexBookResponse>.parseJSONString(JSONString: text) as? [Any],
-        parsedArrayWithAny.count == 2, let chanId = parsedArrayWithAny[0] as? Int {
-        
+        parsedArrayWithAny.count == 2, let chanId = parsedArrayWithAny[0] as? Int, let pair = self.chains[chanId] {
+        //this is for single price
         if let draftPriceSnap = parsedArrayWithAny[1] as? [Double] {
-          let priceSnap = BitfinexBookPriceSnapshot(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
-          let priceSnapshotResponse = BitfinexBookOnePriceSnapshotResponse(chanId: chanId, priceSnapshot: priceSnap)
+          let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
+          let priceSnapshotResponse = BitfinexBookOnePriceSnapshotResponse(chanId: chanId, priceSnapshot: priceSnap, pair: pair)
           self.onePriceBookResponse?(priceSnapshotResponse)
 //          print(text)
-          
+           //this is for all prices
         } else if let draftPricesSnap = parsedArrayWithAny[1] as? [[Double]] {
-          var pricesSnapshor = [BitfinexBookPriceSnapshot]()
+          var pricesSnapshor = [BitfinexBookPrice]()
           for draftPriceSnap in draftPricesSnap {
-            let priceSnap = BitfinexBookPriceSnapshot(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
+            let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
             pricesSnapshor.append(priceSnap)
             
           }
-          let priceSnapshotResponse = BitfinexBookAllPricesSnapshotResponse(chanId: chanId, prices: pricesSnapshor)
+          let priceSnapshotResponse = BitfinexBookAllPricesSnapshotResponse(chanId: chanId, prices: pricesSnapshor, pair: pair)
           self.fullBookResponse?(priceSnapshotResponse)
-          
+          //and this is for command
         } else if let commandString =  parsedArrayWithAny[1] as? String {
           let command = BitfinexBookCommand(chanId: chanId, command: commandString)
           self.commandBookResponse?(command)
@@ -68,7 +71,8 @@ class BitfinexWs {
         }
         
       } else if let bitfinexBookResponse = Mapper<BitfinexBookResponse>().map(JSONString: text) {
-        
+        //geting general reponse about chanel
+        self.chains[bitfinexBookResponse.chanId] = bitfinexBookResponse.pair
         self.echoResponse?(bitfinexBookResponse)
         
       } else {
@@ -113,16 +117,18 @@ struct BitfinexBookResponse: Mappable {
 
 struct BitfinexBookAllPricesSnapshotResponse {
   var chanId: Int = 0
-  var prices: [BitfinexBookPriceSnapshot] = []
+  var prices: [BitfinexBookPrice] = []
+  var pair: String = ""
   
 }
 
 struct BitfinexBookOnePriceSnapshotResponse {
   var chanId: Int = 0
-  var priceSnapshot: BitfinexBookPriceSnapshot = BitfinexBookPriceSnapshot(price: 0, count: 0, amount: 0)
+  var priceSnapshot: BitfinexBookPrice = BitfinexBookPrice(price: 0, count: 0, amount: 0)
+  var pair: String = ""
 }
 
-struct BitfinexBookPriceSnapshot {
+struct BitfinexBookPrice {
   var price: Double = 0.0
   var count: Int = 0
   var amount: Double = 0.0
