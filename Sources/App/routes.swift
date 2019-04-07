@@ -6,9 +6,7 @@ public func routes(_ router: Router) throws {
 
   router.get("status") { _ in "ok \(Date())" }
   
-  router.get("word-test") { request in
-    return wordKey(with: request)
-  }
+  
   
   // MARK: Poster Routes
   
