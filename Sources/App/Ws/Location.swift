@@ -16,4 +16,6 @@ struct HalfBook: Content {
   let pair: String
   let asks: [[Double]]
   let bids: [[Double]]
+  let totalAsks: Double
+  let totalBids: Double
 }

@@ -108,13 +108,13 @@
 
       renderBook = book =>
         h('div', { className: 'column symbol' }, [
-          h('h5', {}, `${book.symbol}`),
+          h('h5', {}, `${book.pair}`),
           h('div', { className: 'row' }, [
             h('div', { className: 'column' }, [
               // h('div', {}, 'Bids'),
               h('div', { className: 'row' }, [
                 h('div', { className: 'column cell' }, 'Bids'), 
-                h('div', { className: 'column cell' }, book.total_bids)
+                h('div', { className: 'column cell' }, book.totalBids)
               ]), 
 //              renderTotal(book.total_bids, 'total_bids', 'total_bids'),
               renderTable(book.bids, 'bids')
@@ -123,7 +123,7 @@
               // h('div', {}, 'Asks'),
               h('div', { className: 'row' }, [
                 h('div', { className: 'column cell' }, 'Asks'), 
-                h('div', { className: 'column cell' }, book.total_asks)
+                h('div', { className: 'column cell' }, book.totalAsks)
               ]),          
               renderTable(book.asks, 'asks')
             ]),
@@ -148,7 +148,7 @@
           { className: 'column exchange' },
           [
             h('div', {}, [
-              h('h5', {}, `${exchange.exchange_title}`)
+              h('h5', {}, `${exchange.exchangeName}`)
             ]),
             h('div', { className: 'row symbols' }, exchange.books.map(renderBook))
           ]
@@ -178,8 +178,8 @@
         );
       };
 
-      const socket = new WebSocket('ws://213.136.80.2:8081/books');  
-      // const socket = new WebSocket('ws://127.0.0.1:8080/books');
+      // const socket = new WebSocket('ws://213.136.80.2:8081/books');  
+      const socket = new WebSocket('ws://localhost:8080/books');
       socket.onopen = event => console.log('Connected', event);
       socket.onclose = event => console.log('Closed', event);
 

@@ -7,16 +7,6 @@
 
 import Foundation
 
-//struct ExchangesBooks: Content {
-//  let exchangeName: String
-//  let books: [HalfBook]
-//}
-//
-//struct HalfBook: Content {
-//  let pair: String
-//  let asks: [[Double]]
-//  let bids: [[Double]]
-//}
 
 
 class ExchangesManager {
@@ -36,14 +26,6 @@ class ExchangesManager {
   }
   
   func updateBook(exchangeName: String, book: [String:[Double:Double]]) {
-    var exchnageBook = exchangesBooks[exchangeName] ?? [String:[Double:Double]]()
-    for newPairBook in book {
-      var pairBook = exchnageBook[newPairBook.key] ?? [:]
-      for priceLevel in newPairBook.value {
-        pairBook[priceLevel.key] = pairBook[priceLevel.key] ?? 0 + priceLevel.value
-      }
-      exchnageBook[newPairBook.key] = pairBook
-    }
-    exchangesBooks[exchangeName] = exchnageBook
+    exchangesBooks[exchangeName] = book
   }
 }

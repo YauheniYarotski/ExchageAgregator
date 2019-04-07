@@ -49,8 +49,10 @@ class BitfinexManager {
       
     }  else if count == 0 {
       if amount == 1 {
+//        print("remove bids:", price)
         pairBook[price] = nil
       } else if amount == -1 {
+//        print("remove ask:", price)
         pairBook[-price] = nil
       } else {
          print("error, amount is", amount)
@@ -59,6 +61,9 @@ class BitfinexManager {
       print("error, count is < 0")
     }
     bitfinexBook[pair] = pairBook
+    
+    print("bids",pairBook.filter({$0.key > 0}).count)
+    print("asks",pairBook.filter({$0.key < 0}).count)
   }
   
 }
