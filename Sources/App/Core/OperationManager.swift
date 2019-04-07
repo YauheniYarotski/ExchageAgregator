@@ -33,11 +33,11 @@ class OperationManager {
           var totalBids: Double = 0
           for levelPrice in sorteredPrices {
             if levelPrice.key < 0 {
-              asks.append([-levelPrice.key,levelPrice.value])
-              totalAsks = totalAsks + levelPrice.value
+              asks.append([-levelPrice.key,levelPrice.value.rounded(toPlaces:3)])
+              totalAsks = (totalAsks + levelPrice.value).rounded(toPlaces:3)
             } else {
-              bids.append([levelPrice.key,levelPrice.value])
-              totalBids = totalBids + levelPrice.value
+              bids.append([levelPrice.key,levelPrice.value.rounded(toPlaces:3)])
+              totalBids = (totalBids + levelPrice.value).rounded(toPlaces:3)
             }
           }
           

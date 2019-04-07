@@ -16,6 +16,11 @@ struct HalfBook: Content {
   let pair: String
   let asks: [[Double]]
   let bids: [[Double]]
-  let totalAsks: Double
+  
+  var totalAsks: Double
+//  var roundeTotalAsks: Double {
+//    return totalAsks.rounded(toPlaces: 3)
+//  }
+  
   let totalBids: Double
 }

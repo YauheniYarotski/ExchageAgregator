@@ -62,8 +62,8 @@ class BitfinexManager {
     }
     bitfinexBook[pair] = pairBook
     
-    print("bids",pairBook.filter({$0.key > 0}).count)
-    print("asks",pairBook.filter({$0.key < 0}).count)
+//    print("bids",pairBook.filter({$0.key > 0}).count)
+//    print("asks",pairBook.filter({$0.key < 0}).count)
   }
   
 }
