@@ -10,7 +10,11 @@ import Vapor
 import WebSocket
 import ObjectMapper
 
-class BitfinexWs {
+protocol Startable {
+  func start()
+}
+
+class BitfinexWs: Startable {
   
   var chains: [Int: String] = [:]
   

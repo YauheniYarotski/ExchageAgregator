@@ -13,6 +13,7 @@ class ExchangesManager {
   
   let bitfinexManager = BitfinexManager()
   let binanceManager = BinanceManager()
+  let bitstampManager = BitstampManager()
   
   var exchangesBooks = [String:[String:[Double:Double]]]() //[exhange:[pair:[price:amount]]]
   
@@ -23,11 +24,15 @@ class ExchangesManager {
     binanceManager.bookDidUpdate = {book in
       self.updateBook(exchangeName: "Binance", book: book)
     }
+    bitstampManager.bookDidUpdate = {book in
+      self.updateBook(exchangeName: "Bitstamp", book: book)
+    }
   }
   
   func startCollectData() {
     bitfinexManager.startCollectData()
     binanceManager.startCollectData()
+    bitstampManager.startCollectData()
   }
   
   func updateBook(exchangeName: String, book: [String:[Double:Double]]) {

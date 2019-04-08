@@ -8,13 +8,13 @@
 import Foundation
 
 
-class BinanceManager: BaseExchangeManager {
+class BitstampManager: BaseExchangeManager {
   
   override init() {
     super.init()
-    let ws = BinanceWs()
+    let ws = BitstampWs()
     ws.bookResponse = {  response in
-      self.updateBook(asks: response.asks, bids: response.bids, pair: response.symbol)
+      self.updateBook(asks: response.data.asks, bids: response.data.bids, pair: response.symbol)
     }
     api = ws
   }

@@ -10,7 +10,7 @@ import Vapor
 import WebSocket
 import ObjectMapper
 
-class BinanceWs {
+class BinanceWs: Startable {
   
   var bookResponse: ((_ binanceBookResponse: BinanceBookResponse)->())?
   
