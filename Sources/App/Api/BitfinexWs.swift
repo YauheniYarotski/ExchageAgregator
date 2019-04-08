@@ -32,7 +32,7 @@ class BitfinexWs: Startable {
       return
     }
     
-    let bookRequest: [String : Any] = ["event":"subscribe", "channel":"book", "symbol":"tBTCUSD", "prec":"P0", "len":"100"]
+    let bookRequest: [String : Any] = ["event":"subscribe", "channel":"book", "symbol":"tBTCUSD", "prec":"P2", "len":"100"]
     guard let bookRequestJsonData = try?  JSONSerialization.data(
       withJSONObject: bookRequest,
       options: []
