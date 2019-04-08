@@ -29,9 +29,9 @@ class BitfinexManager: BaseExchangeManager {
     var pairBook = book[pair] ?? [:]
     if count > 0 {
       if amount > 0 {
-        pairBook[price] = pairBook[price] ?? 0 + amount
+        pairBook[price] = amount
       } else if amount < 0 {
-        pairBook[-price] = pairBook[-price] ?? 0 + abs(amount)
+        pairBook[-price] = abs(amount)
       } else {
         print("error, amount is:", amount)
       }
@@ -50,7 +50,7 @@ class BitfinexManager: BaseExchangeManager {
       print("error, count is < 0")
     }
     book[pair] = pairBook
-    
+//    print(pairBook)
 //    print("bids",pairBook.filter({$0.key > 0}).count)
 //    print("asks",pairBook.filter({$0.key < 0}).count)
   }

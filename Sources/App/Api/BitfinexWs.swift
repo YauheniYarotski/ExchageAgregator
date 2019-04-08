@@ -25,9 +25,7 @@ class BitfinexWs: Startable {
   
   func start() {
     
-    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-    
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "api.bitfinex.com", path: "/ws/2", on: worker).wait() else {
+    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "api.bitfinex.com", path: "/ws/2", on: wsClientWorker).wait() else {
       print("BitfinWS is nil")
       return
     }

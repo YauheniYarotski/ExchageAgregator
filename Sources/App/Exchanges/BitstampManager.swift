@@ -26,7 +26,7 @@ class BitstampManager: BaseExchangeManager {
       let price = bid[0]
       let amount = bid[1]
       if amount > 0 {
-        pairBook[price] = pairBook[price] ?? 0 + amount
+        pairBook[price] = (pairBook[price] ?? 0) + amount
       } else {
         pairBook[price] = nil
       }
@@ -36,7 +36,7 @@ class BitstampManager: BaseExchangeManager {
       let price = -ask[0]
       let amount = ask[1]
       if amount > 0 {
-        pairBook[price] = pairBook[price] ?? 0 + amount
+        pairBook[price] = (pairBook[price] ?? 0) + amount
       } else {
         pairBook[price] = nil
       }

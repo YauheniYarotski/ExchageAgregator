@@ -15,9 +15,9 @@ class BitstampWs: Startable {
   
   func start() {
     
-    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+//    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: worker).wait() else {
+    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: wsClientWorker).wait() else {
       print("BinanceWS is nil")
       return
     }

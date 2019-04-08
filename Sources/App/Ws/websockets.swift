@@ -1,6 +1,8 @@
 
 import Vapor
 
+let wsClientWorker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
 public func sockets(_ websockets: NIOWebSocketServer) {
   // Status
   
@@ -30,15 +32,7 @@ public func sockets(_ websockets: NIOWebSocketServer) {
   
   websockets.get("books") { ws, req in
     // 2
-    print("connected to WS:", ws, req)
-//    let session = try req.parameters.next(BooksTrackingSession.self)
-    // 3
-//    guard sessionManager.booksSessions[session] != nil else {
-//      print("no sessions for session:", session)
-//      ws.close()
-//      return
-//    }
-    // 4
+    print("client connected to WS")
     operationManager.sessionManager.add(listener: ws)
   }
 }

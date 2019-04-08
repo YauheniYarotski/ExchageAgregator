@@ -16,6 +16,8 @@ extension Double {
   }
   
   func granulate(toGranulation granulation:Double) -> Double {
-    return (self/granulation).rounded() * granulation 
+    let rezult = (self/granulation).rounded() * granulation
+//    print(self, rezult)
+    return  rezult
   }
 }

@@ -16,9 +16,9 @@ class BinanceWs: Startable {
   
   func start() {
     
-    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+//    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "stream.binance.com",port: 9443, path: "/ws/btcusdt@depth", on: worker).wait() else {
+    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "stream.binance.com",port: 9443, path: "/ws/btcusdt@depth", on: wsClientWorker).wait() else {
       print("BinanceWS is nil")
       return
     }

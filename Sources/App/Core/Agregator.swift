@@ -18,7 +18,6 @@ class Agregator {
   }
   
   func getData(granulation: Double = 50) -> [ExchangesBooks] {
-    
     var exchanges = [ExchangesBooks]()
     
     for exchange in self.exchangeManager.exchangesBooks  {
@@ -33,11 +32,13 @@ class Agregator {
           let price = levelPrice.key.granulate(toGranulation: granulation)
           let amount = levelPrice.value
           if price < 0 {
-            asks[-price] =  asks[-price] ?? 0 + amount
+            asks[-price] =  (asks[-price] ?? 0) + amount
             totalAsks = totalAsks + amount
           } else {
-            bids[price] =  bids[price] ?? 0 + amount
+            bids[price] =  (bids[price] ?? 0) + amount
             totalBids = totalBids + amount
+            
+            
           }
         }
         
