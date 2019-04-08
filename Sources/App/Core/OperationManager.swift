@@ -21,7 +21,7 @@ class OperationManager {
     Jobs.add(interval: .seconds(1)) {
 //      print("See you every 5 days.")
       
-      let granulatedExchanges = agregator.getData(granulation: 100)
+      let granulatedExchanges = agregator.getData(granulation: 50)
       
       self.sessionManager.update(granulatedExchanges)
     }
