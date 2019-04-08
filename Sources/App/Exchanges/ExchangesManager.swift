@@ -38,7 +38,7 @@ class ExchangesManager {
     bitfinexManager.startCollectData()
     binanceManager.startCollectData()
     bitstampManager.startCollectData()
-    coinbaseProManager.startCollectData()
+//    coinbaseProManager.startCollectData()
   }
   
   func updateBook(exchangeName: String, book: [String:[Double:Double]]) {

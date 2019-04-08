@@ -28,15 +28,15 @@ class CoinbaseProWs: Startable {
 //        print("can't parse bitfin json")
 //        return
 //    }
-    let request = CoinbaseProBookRequest.init(type: "subscribe", product_ids: ["ETH-USD"], channels: ["level2"])
-//    let str = "{\"type\": \"subscribe\",\"product_ids\": [\"ETH-USD\"],\"channels\": [\"level2\"]}"
-    let encodedData = try! JSONEncoder().encode(request)
+//    let request = CoinbaseProInfoResponse(type: "\subscribe", channels: [CoinbaseProChanel(name: "\heartbeat", product_ids: ["\ETH-EUR"])])
+//    let str = "{\"type\":\"subscribe\",\"product_ids\":[\"ETH-USD\"],\"channels\": [\"level2\"]}"
+//    let encodedData = try! JSONEncoder().encode(request)
 //    ws.send(str)
 //    print(str)
     
 //    print(String(bytes: data, encoding: .utf8)!)
     
-    ws.send(encodedData)
+//    ws.send(encodedData)
     
     
     ws.onError { (ws, error) in
@@ -113,6 +113,14 @@ class CoinbaseProWs: Startable {
 //      }
 //      ]
 //    }
+
+//{
+//"type": "subscribe",
+//"channels": [{ "name": "heartbeat", "product_ids": ["ETH-EUR"] }]
+//}
+
+
+
 struct CoinbaseProBookRequest: Content {
   let type: String
   let product_ids: [String]
