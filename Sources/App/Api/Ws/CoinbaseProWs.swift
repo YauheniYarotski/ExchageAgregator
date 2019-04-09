@@ -72,7 +72,7 @@ class CoinbaseProWs: Startable {
     
     let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.level2.rawValue], product_ids: [ProductId.BTCUSD.rawValue])
     
-    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", maxFrameSize: 1 << 18, on: wsClientWorker).wait()
+    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", maxFrameSize: 1 << 19, on: wsClientWorker).wait()
       else {
         print("CoinbaseProWS is nil")
         return

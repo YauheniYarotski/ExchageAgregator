@@ -81,7 +81,7 @@ struct BitstampBookResponse: Content {
 struct BitstampBookData: Content {
   
   let timestamp: String
-  let microtimestamp: String
+  let microtimestamp: String?
   let bids: [[Double]]
   let asks: [[Double]]
   
@@ -89,7 +89,7 @@ struct BitstampBookData: Content {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     
     timestamp = try container.decode(String.self, forKey: .timestamp)
-    microtimestamp = try container.decode(String.self, forKey: .microtimestamp)
+    microtimestamp = try? container.decode(String.self, forKey: .microtimestamp)
     bids = try container.decode([[String]].self, forKey: .bids).compactMap({$0.compactMap({Double($0)})})
     asks = try container.decode([[String]].self, forKey: .asks).compactMap({$0.compactMap({Double($0)})})
   }

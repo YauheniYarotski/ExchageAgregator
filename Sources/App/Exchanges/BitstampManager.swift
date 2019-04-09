@@ -6,9 +6,12 @@
 //
 
 import Foundation
+import Jobs
 
 
 class BitstampManager: BaseExchangeManager {
+  
+  let restApi = BitstampRest()
   
   override init() {
     super.init()
@@ -17,11 +20,25 @@ class BitstampManager: BaseExchangeManager {
       self.updateBook(asks: response.data.asks, bids: response.data.bids, pair: response.symbol)
     }
     api = ws
+    
+    restApi.didGetFullBook = { book, pair in
+      self.updateBook(asks: book.asks, bids: book.bids, pair: pair, deleteOldData: true)
+    }
+  }
+  
+  override func startCollectData() {
+    super.startCollectData()
+    
+    Jobs.delay(by: .seconds(6), interval: .seconds(30)) {
+       self.restApi.getFullBook(for: "btcusd")
+    }
+   
   }
   
   
-  func updateBook(asks: [[Double]], bids: [[Double]], pair: String) {
-    var pairBook = book[pair] ?? [:]
+  func updateBook(asks: [[Double]], bids: [[Double]], pair: String, deleteOldData: Bool = false) {
+    
+    var pairBook = deleteOldData ? [:] : book[pair] ?? [:]
     for bid in bids {
       let price = bid[0]
       let amount = bid[1]
