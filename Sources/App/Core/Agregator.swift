@@ -17,7 +17,7 @@ class Agregator {
     self.exchangeManager = exchangeManager
   }
   
-  func getData(granulation: Double = 50) -> [ExchangesBooks] {
+  func getData(granulation: Double) -> [ExchangesBooks] {
     var exchanges = [ExchangesBooks]()
     
     for exchange in self.exchangeManager.exchangesBooks  {
@@ -42,8 +42,8 @@ class Agregator {
           }
         }
         
-        let sorteredAsks = asks.sorted(by: {$0.0 < $1.0}).map({[$0.key,$0.value]})
-        let sorteredBids = bids.sorted(by: {$0.0 > $1.0}).map({[$0.key,$0.value]})
+        let sorteredAsks = asks.sorted(by: {$0.0 < $1.0}).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
+        let sorteredBids = bids.sorted(by: {$0.0 > $1.0}).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
         
         let bookForPair = BookForPair.init(pair: pair.key, asks: sorteredAsks, bids: sorteredBids, totalAsks: totalAsks.rounded(toPlaces:3), totalBids: totalBids.rounded(toPlaces:3))
         booksForPairs.append(bookForPair)

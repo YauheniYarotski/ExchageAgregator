@@ -8,7 +8,7 @@
 
 import Vapor
 import WebSocket
-import ObjectMapper
+import Foundation
 
 protocol Startable {
   func start()
@@ -44,9 +44,14 @@ class BitfinexWs: Startable {
     
     ws.onText { ws, text in
       //print(text)
-      
+      guard  let jsonData = text.data(using: .utf8) else {
+        print("Error with parsing bitfin ws response")
+        return
+      }
+      //if let bookResponse: BitstampBookResponse = try? JSONDecoder().decode(BitstampBookResponse.self, from: jsonData)
       //geting snap of all prices or single snape
-      if let parsedArrayWithAny = Mapper<BitfinexBookResponse>.parseJSONString(JSONString: text) as? [Any],
+      if let parsedAny = try? JSONSerialization.jsonObject(with:
+        jsonData, options: []), let parsedArrayWithAny = parsedAny as? [Any],
         parsedArrayWithAny.count == 2, let chanId = parsedArrayWithAny[0] as? Int, let pair = self.chains[chanId] {
         //this is for single price
         if let draftPriceSnap = parsedArrayWithAny[1] as? [Double] {
@@ -72,13 +77,14 @@ class BitfinexWs: Startable {
           print("annown answer from server", text)
         }
         
-      } else if let bitfinexBookResponse = Mapper<BitfinexBookResponse>().map(JSONString: text) {
+      } else if let bitfinexBookResponse = try? JSONDecoder().decode(BitfinexBookResponse.self, from: jsonData) {
         //geting general reponse about chanel
         self.chains[bitfinexBookResponse.chanId] = bitfinexBookResponse.pair
         self.echoResponse?(bitfinexBookResponse)
-        
+      } else if let bitfinexInfoResponse = try? JSONDecoder().decode(BitfinexInfoResponse.self, from: jsonData) {
+        print("bitfinInfo:", bitfinexInfoResponse)
       } else {
-        print("annown answer from server", text)
+        print("annown answer from server 2", text)
       }
     }
     
@@ -87,7 +93,7 @@ class BitfinexWs: Startable {
 }
 
 
-struct BitfinexBookResponse: Mappable {
+struct BitfinexBookResponse: Content {
   var event: String = ""
   var channel: String = ""
   var chanId: Int = 0
@@ -96,24 +102,6 @@ struct BitfinexBookResponse: Mappable {
   var freq: String = ""
   var len: String = ""
   var pair: String = ""
-  
-  init?(map: Map) {
-    guard let _ = map.JSON["event"],let _ = map.JSON["channel"],let _ = map.JSON["chanId"]
-      else {
-        return nil
-    }
-  }
-  
-  mutating func mapping(map: Map) {
-    event             <- map["event"]
-    channel             <- map["channel"]
-    chanId                <- map["chanId"]
-    symbol               <- map["symbol"]
-    prec               <- map["prec"]
-    freq                  <- map["freq"]
-    len                  <- map["len"]
-    pair                  <- map["pair"]
-  }
 }
 
 
@@ -139,6 +127,17 @@ struct BitfinexBookPrice {
 struct BitfinexBookCommand {
   var chanId: Int = 0
   var command: String = ""
+}
+
+struct BitfinexInfoResponse: Content {
+  let event: String
+  let version: Double
+  let serverId: String
+  let platform: BitfinexPlatform
+}
+
+struct BitfinexPlatform: Content {
+  let status: Double
 }
 
 

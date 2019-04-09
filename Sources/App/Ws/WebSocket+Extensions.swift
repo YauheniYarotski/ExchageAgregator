@@ -31,11 +31,7 @@ import WebSocket
 import Foundation
 
 extension WebSocket {
-//  func send(_ location: Location) {
-//    let encoder = JSONEncoder()
-//    guard let data = try? encoder.encode(location) else { return }
-//    send(data)
-//  }
+
   
   func send(_ exchangesBooks: [ExchangesBooks]) {
     let encoder = JSONEncoder()
@@ -46,13 +42,3 @@ extension WebSocket {
     
   }
 }
-
-//guard let bookRequestJsonData = try?  JSONSerialization.data(
-//  withJSONObject: bookRequest,
-//  options: []
-//  ) else {
-//    print("can't parse bitfin json")
-//    return
-//}
-//
-//ws.send(bookRequestJsonData)

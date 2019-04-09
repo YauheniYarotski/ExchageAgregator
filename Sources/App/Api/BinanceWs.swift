@@ -8,7 +8,6 @@
 import Foundation
 import Vapor
 import WebSocket
-import ObjectMapper
 
 class BinanceWs: Startable {
   
