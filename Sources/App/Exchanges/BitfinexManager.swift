@@ -45,8 +45,8 @@ class BitfinexManager: BaseExchangeManager {
     
   }
 
-  func updateBook(withPrice price: Double, amount: Double, count:Int, pair: String) {
-    var pairBook = book[pair] ?? [:]
+  func updateBook(withPrice price: Double, amount: Double, count:Int, pair: String, deleteOldData: Bool = false) {
+    var pairBook = deleteOldData ? [:] : book[pair] ?? [:]
     if count > 0 {
       if amount > 0 {
         pairBook[price] = amount
