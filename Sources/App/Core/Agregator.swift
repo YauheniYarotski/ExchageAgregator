@@ -38,8 +38,8 @@ class Agregator {
           }
         }
         
-        let sorteredAsks = asks.sorted(by: {$0.0 < $1.0}).prefix(30).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
-        let sorteredBids = bids.sorted(by: {$0.0 > $1.0}).prefix(30).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
+        let sorteredAsks = asks.sorted(by: {$0.0 < $1.0}).prefix(25).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
+        let sorteredBids = bids.sorted(by: {$0.0 > $1.0}).prefix(25).map({[$0.key.rounded(toPlaces: 2),$0.value.rounded(toPlaces: 2)]})
         
         let totalAsks = sorteredAsks.reduce(0.0) { result, nextAsk in
           return result + nextAsk[1]
