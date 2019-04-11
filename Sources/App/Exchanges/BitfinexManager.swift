@@ -42,7 +42,7 @@ class BitfinexManager: BaseExchangeManager {
   }
   
   override func startCollectData() {
-//    super.startCollectData()
+    super.startCollectData()
     
     Jobs.delay(by: .seconds(9), interval: .seconds(30)) {
       self.restApi.getFullBook(for: "BTCUSD")
