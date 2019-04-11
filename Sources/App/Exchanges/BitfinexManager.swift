@@ -6,9 +6,12 @@
 //
 
 import Foundation
+import Jobs
 
 
 class BitfinexManager: BaseExchangeManager {
+  
+  let restApi = BitfinexRest()
   
   override init() {
     super.init()
@@ -23,6 +26,23 @@ class BitfinexManager: BaseExchangeManager {
       }
     }
     api = ws
+    
+    
+    restApi.didGetFullBook = { book in
+      for priceLevel in book.prices {
+        self.updateBook(withPrice: priceLevel.price, amount: priceLevel.amount, count: priceLevel.count, pair: book.pair)
+      }
+    }
+    
+  }
+  
+  override func startCollectData() {
+//    super.startCollectData()
+    
+    Jobs.delay(by: .seconds(5), interval: .seconds(30)) {
+      self.restApi.getFullBook(for: "BTCUSD")
+    }
+    
   }
 
   func updateBook(withPrice price: Double, amount: Double, count:Int, pair: String) {
@@ -38,10 +58,8 @@ class BitfinexManager: BaseExchangeManager {
       
     }  else if count == 0 {
       if amount == 1 {
-//        print("remove bids:", price)
         pairBook[price] = nil
       } else if amount == -1 {
-//        print("remove ask:", price)
         pairBook[-price] = nil
       } else {
          print("error, amount is", amount)
@@ -50,9 +68,6 @@ class BitfinexManager: BaseExchangeManager {
       print("error, count is < 0")
     }
     book[pair] = pairBook
-//    print(pairBook)
-//    print("bids",pairBook.filter({$0.key > 0}).count)
-//    print("asks",pairBook.filter({$0.key < 0}).count)
   }
   
 }
