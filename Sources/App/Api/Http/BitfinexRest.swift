@@ -39,13 +39,7 @@ class BitfinexRest {
         } else {
           print("annown answer from server", response.body)
         }
-        
-        
-        
-        
-        
-        
-        
+
       })
     }
     

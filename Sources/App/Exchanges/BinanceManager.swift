@@ -67,16 +67,5 @@ class BinanceManager: BaseExchangeManager {
     book[pair] = pairBook
   }
   
-  func removeOrders(fromMindBid: Double, toMaxAsk: Double, pair: String) {
-    let pairBook = book[pair] ?? [:]
-    for priceLeve in pairBook {
-      if priceLeve.key > 0 && priceLeve.key > fromMindBid {
-        book[pair]?[priceLeve.key] = nil
-      } else if priceLeve.key < 0 && -priceLeve.key < toMaxAsk {
-        book[pair]?[priceLeve.key] = nil
-      }
-    }
-  }
-  
 }
 

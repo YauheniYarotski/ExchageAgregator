@@ -110,6 +110,13 @@ struct BitfinexBookAllPricesSnapshotResponse {
   var prices: [BitfinexBookPrice] = []
   var pair: String = ""
   
+  var maxAsk: BitfinexBookPrice? {
+    return prices.filter({$0.amount < 0}).max(by: {$0.price < $1.price})
+  }
+  var minBid: BitfinexBookPrice? {
+    return prices.filter({$0.amount > 0}).max(by: {$0.price > $1.price})
+  }
+  
 }
 
 struct BitfinexBookOnePriceSnapshotResponse {

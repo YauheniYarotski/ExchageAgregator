@@ -29,22 +29,27 @@ class BitfinexManager: BaseExchangeManager {
     
     
     restApi.didGetFullBook = { book in
+      
+      if let minBid = book.minBid, let maxAsk = book.maxAsk {
+        self.removeOrders(fromMindBid: minBid.price, toMaxAsk: maxAsk.price, pair: book.pair)
+      }
+      
       for priceLevel in book.prices {
-        self.updateBook(withPrice: priceLevel.price, amount: priceLevel.amount, count: priceLevel.count, pair: book.pair, deleteOldData: true)
+        self.updateBook(withPrice: priceLevel.price, amount: priceLevel.amount, count: priceLevel.count, pair: book.pair)
       }
     }
     
   }
   
   override func startCollectData() {
-    super.startCollectData()
+//    super.startCollectData()
     
     Jobs.delay(by: .seconds(9), interval: .seconds(30)) {
       self.restApi.getFullBook(for: "BTCUSD")
     }
     
   }
-
+  
   func updateBook(withPrice price: Double, amount: Double, count:Int, pair: String, deleteOldData: Bool = false) {
     var pairBook = deleteOldData ? [:] : book[pair] ?? [:]
     if count > 0 {
@@ -62,7 +67,7 @@ class BitfinexManager: BaseExchangeManager {
       } else if amount == -1 {
         pairBook[-price] = nil
       } else {
-         print("error, amount is", amount)
+        print("error, amount is", amount)
       }
     } else {
       print("error, count is < 0")
