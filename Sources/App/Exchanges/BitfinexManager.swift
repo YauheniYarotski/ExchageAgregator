@@ -30,7 +30,7 @@ class BitfinexManager: BaseExchangeManager {
     
     restApi.didGetFullBook = { book in
       for priceLevel in book.prices {
-        self.updateBook(withPrice: priceLevel.price, amount: priceLevel.amount, count: priceLevel.count, pair: book.pair)
+        self.updateBook(withPrice: priceLevel.price, amount: priceLevel.amount, count: priceLevel.count, pair: book.pair, deleteOldData: true)
       }
     }
     
