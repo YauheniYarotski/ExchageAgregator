@@ -11,12 +11,24 @@ import Vapor
 
 class ExchangesManager {
   
+  static var typeName: String { return String(describing: self) }
+  
+  private let serialQueue = DispatchQueue.init( label: "queue \(typeName)")
+  
   let bitfinexManager = BitfinexManager()
   let binanceManager = BinanceManager()
   //  let bitstampManager = BitstampManager()
   //  let coinbaseProManager = CoinbaseProManager()
   
-  var exchangesBooks = [ExchangeName:[CoinPair:[Double:Double]]]()
+  private var exchangesBooks = [ExchangeName:[CoinPair:[Double:Double]]]()
+  
+  func getExchangesBooks() -> [ExchangeName:[CoinPair:[Double:Double]]] {
+    var copy: [ExchangeName:[CoinPair:[Double:Double]]]!
+    serialQueue.sync {
+      copy = self.exchangesBooks
+    }
+    return copy
+  }
   
   init() {
     bitfinexManager.booksDidUpdate = { newBook in
@@ -48,10 +60,12 @@ class ExchangesManager {
   }
   
   func updateBook(exchangeName: ExchangeName, book: [Double:Double], pair: CoinPair) {
-    if exchangesBooks[exchangeName] != nil {
-      exchangesBooks[exchangeName]?[pair] = book
-    } else {
-      exchangesBooks[exchangeName] = [pair:book]
+    serialQueue.async {
+      if self.exchangesBooks[exchangeName] != nil {
+        self.exchangesBooks[exchangeName]?[pair] = book
+      } else {
+        self.exchangesBooks[exchangeName] = [pair:book]
+      }
     }
   }
 }

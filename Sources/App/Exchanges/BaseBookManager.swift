@@ -63,13 +63,10 @@ class BaseBookManager<Pair:Hashable, Coin: Hashable> {
   func cooverForWsStartListenBooks() {}
   func stopListenTickers() {}
   
-  
-  
-  
   func removeOrders(fromMindBid: Double, toMaxAsk: Double, pair: Pair) {
     serialQueue.async {
-      let pairBook = self.books[pair] ?? [:]
-      for priceLeve in pairBook {
+      if self.books[pair] == nil { self.books[pair] = [:] }
+      for priceLeve in self.books[pair]! {
         if priceLeve.key > 0 && priceLeve.key > fromMindBid {
           self.books[pair]?[priceLeve.key] = nil
         } else if priceLeve.key < 0 && -priceLeve.key < toMaxAsk {
@@ -82,27 +79,11 @@ class BaseBookManager<Pair:Hashable, Coin: Hashable> {
   
   func updateBook(book:[Double:Double], pair: Pair) {
     serialQueue.async {
-      var pairBook = self.books[pair] ?? [:]
-      for priceLevel in book {
-        let price = priceLevel.key
-        let amount = priceLevel.value
-        if amount > 0 {
-          pairBook[price] = amount
-        } else {
-          pairBook[price] = nil
-        }
-      }
-      self.books[pair] = pairBook
+      if self.books[pair] == nil { self.books[pair] = [:] }
+      book.forEach({ (priceLevel) in
+        self.books[pair]?[priceLevel.key] = priceLevel.value > 0 ? priceLevel.value : nil
+      })
     }
   }
   
-  
 }
-
-
-
-//struct Book: Content {
-//  let tradeTime: Int
-//  let pair: CoinPair
-//  let prices: [Double:Double]
-//}

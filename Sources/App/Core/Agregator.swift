@@ -20,7 +20,7 @@ class Agregator {
   func getData(granulation: Double) -> [ExchangesBooks] {
     var exchanges = [ExchangesBooks]()
     
-    for exchange in self.exchangeManager.exchangesBooks  {
+    for exchange in self.exchangeManager.getExchangesBooks()  {
       var booksForPairs = [BookForPair]()
       
       for pair in exchange.value {
