@@ -9,28 +9,31 @@ import Foundation
 import Vapor
 import WebSocket
 
-class BinanceWs: Startable {
+class BinanceWs: BaseWs {
   
-  var bookResponse: ((_ binanceBookResponse: BinanceBookResponse)->())?
+  var responseHandler: ((_ response: BinanceBookResponse)->())?
   
-  func start() {
-    
-//    let worker = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-    
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "stream.binance.com",port: 9443, path: "/ws/btcusdt@depth", on: wsClientWorker).wait() else {
-      print("BinanceWS is nil")
-      return
-    }
-    
-    ws.onText { ws, text in
+  func startListenBooks() {
+
+    let wsOnText: ((WebSocket, String) -> ()) = { (ws: WebSocket, text: String) in
       //      print(text)
-      if let jsonData = text.data(using: .utf8), let binanceBookResponse: BinanceBookResponse = try? JSONDecoder().decode(BinanceBookResponse.self, from: jsonData) {
-        self.bookResponse?(binanceBookResponse)
+      if let jsonData = text.data(using: .utf8), let response = try? JSONDecoder().decode(BinanceBookResponse.self, from: jsonData) {
+        self.responseHandler?(response)
       } else {
-        print("Error with parsing binance ws response")
+        print("Error with parsing \(BinanceBookResponse.self) ws response:", text)
         return
       }
+    }
+    
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
+    
+    let _ = HTTPClient.webSocket(scheme: .wss, hostname: "stream.binance.com", port: 9443, path: "/ws/btcusdt@depth", on: wsClientWorker).do { (ws) in
+      self.ws = ws
+      ws.onText(wsOnText)
       
+      
+      }.catch { (error) in
+        print("\(self), error:",error)
     }
     
   }

@@ -10,11 +10,7 @@ import Vapor
 import WebSocket
 import Foundation
 
-protocol Startable {
-  func start()
-}
-
-class BitfinexWs: Startable {
+class BitfinexWs: BaseWs {
   
   var chains: [Int: String] = [:]
   
@@ -23,71 +19,70 @@ class BitfinexWs: Startable {
   var onePriceBookResponse: ((_ onePriceSnapshotResponse: BitfinexBookOnePriceSnapshotResponse)->())?
   var commandBookResponse: ((_ commnad: BitfinexBookCommand)->())?
   
-  func start() {
+  func startListenBooks() {
     
-    guard let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "api.bitfinex.com", path: "/ws/2", on: wsClientWorker).wait() else {
-      print("BitfinWS is nil")
-      return
-    }
-    
-    let bookRequest: [String : Any] = ["event":"subscribe", "channel":"book", "symbol":"tBTCUSD", "prec":"P2", "len":"100"]
-    guard let bookRequestJsonData = try?  JSONSerialization.data(
-      withJSONObject: bookRequest,
-      options: []
-      ) else {
-        print("can't parse bitfin json")
-        return
-    }
-    
-    ws.send(bookRequestJsonData)
-    
-    
-    ws.onText { ws, text in
-      //print(text)
-      guard  let jsonData = text.data(using: .utf8) else {
-        print("Error with parsing bitfin ws response")
-        return
+    let _ = HTTPClient.webSocket(scheme: .wss, hostname: "api.bitfinex.com", path: "/ws/2", on: wsClientWorker).do { (ws) in
+      self.ws = ws
+      let bookRequest: [String : Any] = ["event":"subscribe", "channel":"book", "symbol":"tBTCUSD", "prec":"P2", "len":"100"]
+      
+      guard let bookRequestJsonData = try?  JSONSerialization.data(
+        withJSONObject: bookRequest,
+        options: []
+        ) else {
+          print("can't parse bitfin json")
+          return
       }
-      //if let bookResponse: BitstampBookResponse = try? JSONDecoder().decode(BitstampBookResponse.self, from: jsonData)
-      //geting snap of all prices or single snape
-      if let parsedAny = try? JSONSerialization.jsonObject(with:
-        jsonData, options: []), let parsedArrayWithAny = parsedAny as? [Any],
-        parsedArrayWithAny.count == 2, let chanId = parsedArrayWithAny[0] as? Int, let pair = self.chains[chanId] {
-        //this is for single price
-        if let draftPriceSnap = parsedArrayWithAny[1] as? [Double] {
-          let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
-          let priceSnapshotResponse = BitfinexBookOnePriceSnapshotResponse(chanId: chanId, priceSnapshot: priceSnap, pair: pair)
-          self.onePriceBookResponse?(priceSnapshotResponse)
-//          print(text)
-           //this is for all prices
-        } else if let draftPricesSnap = parsedArrayWithAny[1] as? [[Double]] {
-          var pricesSnapshor = [BitfinexBookPrice]()
-          for draftPriceSnap in draftPricesSnap {
-            let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
-            pricesSnapshor.append(priceSnap)
-            
-          }
-          let priceSnapshotResponse = BitfinexBookAllPricesSnapshotResponse(chanId: chanId, prices: pricesSnapshor, pair: pair)
-          self.fullBookResponse?(priceSnapshotResponse)
-          //and this is for command
-        } else if let commandString =  parsedArrayWithAny[1] as? String {
-          let command = BitfinexBookCommand(chanId: chanId, command: commandString)
-          self.commandBookResponse?(command)
-        } else {
-          print("annown answer from server", text)
+      ws.send(bookRequestJsonData)
+      
+      
+      ws.onText { ws, text in
+        //print(text)
+        guard  let jsonData = text.data(using: .utf8) else {
+          print("Error with parsing bitfin ws response")
+          return
         }
-        
-      } else if let bitfinexBookResponse = try? JSONDecoder().decode(BitfinexBookResponse.self, from: jsonData) {
-        //geting general reponse about chanel
-        self.chains[bitfinexBookResponse.chanId] = bitfinexBookResponse.pair
-        self.echoResponse?(bitfinexBookResponse)
-      } else if let bitfinexInfoResponse = try? JSONDecoder().decode(BitfinexInfoResponse.self, from: jsonData) {
-        print("bitfinInfo:", bitfinexInfoResponse)
-      } else {
-        print("annown answer from server 2", text)
+        //if let bookResponse: BitstampBookResponse = try? JSONDecoder().decode(BitstampBookResponse.self, from: jsonData)
+        //geting snap of all prices or single snape
+        if let parsedAny = try? JSONSerialization.jsonObject(with:
+          jsonData, options: []), let parsedArrayWithAny = parsedAny as? [Any],
+          parsedArrayWithAny.count == 2, let chanId = parsedArrayWithAny[0] as? Int, let pair = self.chains[chanId] {
+          //this is for single price
+          if let draftPriceSnap = parsedArrayWithAny[1] as? [Double] {
+            let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
+            let priceSnapshotResponse = BitfinexBookOnePriceSnapshotResponse(chanId: chanId, priceSnapshot: priceSnap, pair: pair)
+            self.onePriceBookResponse?(priceSnapshotResponse)
+            //          print(text)
+            //this is for all prices
+          } else if let draftPricesSnap = parsedArrayWithAny[1] as? [[Double]] {
+            var pricesSnapshor = [BitfinexBookPrice]()
+            for draftPriceSnap in draftPricesSnap {
+              let priceSnap = BitfinexBookPrice(price: draftPriceSnap[0], count: Int(draftPriceSnap[1]), amount: draftPriceSnap[2])
+              pricesSnapshor.append(priceSnap)
+              
+            }
+            let priceSnapshotResponse = BitfinexBookAllPricesSnapshotResponse(chanId: chanId, prices: pricesSnapshor, pair: pair)
+            self.fullBookResponse?(priceSnapshotResponse)
+            //and this is for command
+          } else if let commandString =  parsedArrayWithAny[1] as? String {
+            let command = BitfinexBookCommand(chanId: chanId, command: commandString)
+            self.commandBookResponse?(command)
+          } else {
+            print("\(self), annown answer from server", text)
+          }
+          
+        } else if let bitfinexBookResponse = try? JSONDecoder().decode(BitfinexBookResponse.self, from: jsonData) {
+          //geting general reponse about chanel
+          self.chains[bitfinexBookResponse.chanId] = bitfinexBookResponse.pair
+          self.echoResponse?(bitfinexBookResponse)
+        } else if let bitfinexInfoResponse = try? JSONDecoder().decode(BitfinexInfoResponse.self, from: jsonData) {
+          print("bitfinInfo:", bitfinexInfoResponse)
+        } else {
+          print("\(self), annown answer from server 2", text)
+        }
       }
+      }.catch { (error) in
+        print("\(self), error:",error)
     }
-    
   }
   
 }

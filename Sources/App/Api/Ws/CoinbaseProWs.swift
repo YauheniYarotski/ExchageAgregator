@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 import WebSocket
 
-class CoinbaseProWs: Startable {
+class CoinbaseProWs: BaseWs {
   
   public enum ProductId: String, CaseIterable {
     case BTCUSD = "BTC-USD"

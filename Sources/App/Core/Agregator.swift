@@ -51,11 +51,11 @@ class Agregator {
         let bookForPair = BookForPair.init(pair: pair.key, asks: sorteredAsks, bids: sorteredBids, totalAsks: totalAsks.rounded(toPlaces:3), totalBids: totalBids.rounded(toPlaces:3))
         booksForPairs.append(bookForPair)
       }
-      let sorteredBooksForPairs = booksForPairs.sorted(by: {$0.pair > $1.pair})
+      let sorteredBooksForPairs = booksForPairs.sorted(by: {$0.pair.symbol > $1.pair.symbol})
       let ex = ExchangesBooks.init(exchangeName: exchange.key, books: sorteredBooksForPairs)
       exchanges.append(ex)
     }
-    return exchanges.sorted(by: {$0.exchangeName > $1.exchangeName})
+    return exchanges.sorted(by: {$0.exchangeName.rawValue > $1.exchangeName.rawValue})
   }
   
 }
