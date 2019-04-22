@@ -12,20 +12,22 @@ import Jobs
 class OperationManager {
   let exchangeManager = ExchangesManager()
   let sessionManager = TrackingSessionManager()
+  let agregator = Agregator()
+  
+  init() {
+    agregator.booksSourceHandler = {self.exchangeManager.getExchangesBooks()}
+  }
   
   func start(_ app: Application) {
     
-    let agregator = Agregator(exchangeManager: exchangeManager)
     exchangeManager.startCollectData()
     
-    Jobs.add(interval: .seconds(1)) {
-//      print("See you every 5 days.")
-      
-      let granulatedExchanges = agregator.getData(granulation: 50)
-      
-      self.sessionManager.update(granulatedExchanges)
+    Jobs.add(interval: .seconds(1)) {      
+      if let granulatedExchanges = self.agregator.getData(granulation: 50) {
+        self.sessionManager.update(granulatedExchanges)
+      }
     }
     
-  
+    
   }
 }

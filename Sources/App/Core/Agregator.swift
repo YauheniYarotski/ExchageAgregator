@@ -11,16 +11,15 @@ import Vapor
 
 class Agregator {
   
-  let exchangeManager: ExchangesManager
+  var booksSourceHandler: (()-> [ExchangeName:[CoinPair:[Double:Double]]])?
   
-  init(exchangeManager: ExchangesManager) {
-    self.exchangeManager = exchangeManager
-  }
   
-  func getData(granulation: Double) -> [ExchangesBooks] {
+  func getData(granulation: Double) -> [ExchangesBooks]? {
     var exchanges = [ExchangesBooks]()
     
-    for exchange in self.exchangeManager.getExchangesBooks()  {
+    guard let sourceExchanges = booksSourceHandler?() else {return nil}
+    
+    for exchange in sourceExchanges  {
       var booksForPairs = [BookForPair]()
       
       for pair in exchange.value {
