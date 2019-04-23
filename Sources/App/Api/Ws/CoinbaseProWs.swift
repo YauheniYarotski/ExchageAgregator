@@ -34,7 +34,6 @@ class CoinbaseProWs: BaseWs {
       ws.send(jsonString)
       
       ws.onText { ws, text in
-        //            print(text)
         guard  let jsonData = text.data(using: .utf8) else {
           print("Error with parsing coinbasepro ws response")
           return

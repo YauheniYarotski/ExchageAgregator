@@ -18,18 +18,7 @@ class CoinbaseProManager: BaseBookManager<CoinbasePair, CoinbaseCoin> {
     
     ws.bookSnapshotResponse = {  response in
       guard let pair = CoinbasePair(string: response.product_id) else {return}
-      var prices = [Double:Double]()
-      response.asks.forEach({ (ask) in
-        let price = ask[0]
-        let amount = ask[1]
-        prices[-price] = amount
-      })
-      response.bids.forEach({ (bid) in
-        let price = bid[0]
-        let amount = bid[1]
-        prices[price] = amount
-      })
-      self.updateBook(book: prices, pair: pair)
+      self.updateBook(asks: response.asks, bids: response.bids, pair: pair)
     }
     
     ws.bookChangesResponse = {  response in
@@ -77,7 +66,12 @@ class CoinbaseProManager: BaseBookManager<CoinbasePair, CoinbaseCoin> {
     })
   }
   
-  func getFullBook() {
+  override func cooverForWsStartListenBooks() {
+    super.cooverForWsStartListenBooks()
+    ws.startListenBooks()
+  }
+  
+  override func cooverForGetFullBook() {
     let pair = CoinbasePair(firstAsset: .btc, secondAsset: .usd)
     let request = RestRequest.init(hostName: "api.pro.coinbase.com", path: "/products/\(pair.symbol)/book", queryParameters: ["level":"3"])
     GenericRest.sendRequest(request: request, completion: { (response: CoinbaseBookRestResponse) in
@@ -87,15 +81,6 @@ class CoinbaseProManager: BaseBookManager<CoinbasePair, CoinbaseCoin> {
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
-  }
-  
-  override func cooverForWsStartListenBooks() {
-    super.cooverForWsStartListenBooks()
-    ws.startListenBooks()
-  }
-  
-  override func cooverForGetFullBook() {
-    getFullBook()
   }
   
 }

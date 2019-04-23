@@ -81,6 +81,13 @@ struct BitstampBookData: Content {
   let bids: [[Double]]
   let asks: [[Double]]
   
+  var maxAsk: [Double]? {
+    return asks.max(by: {$0[0] < $1[0]})
+  }
+  var minBid: [Double]? {
+    return bids.max(by: {$0[0] > $1[0]})
+  }
+  
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     

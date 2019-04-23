@@ -17,14 +17,7 @@ class BinanceManager: BaseBookManager<BinancePair, BinanceCoin> {
     super.init()
     ws.responseHandler = {  response in
       guard let binancePair = BinancePair(string: response.symbol) else {return}
-      var book = [Double:Double]()
-      response.asks.forEach({ (level) in
-        book[-level[0]] = level[1]
-      })
-      response.bids.forEach({ (level) in
-        book[level[0]] = level[1]
-      })
-      self.updateBook(book: book, pair: binancePair)
+      self.updateBook(asks: response.asks, bids: response.bids, pair: binancePair)
     }
     
   }
@@ -72,14 +65,7 @@ class BinanceManager: BaseBookManager<BinancePair, BinanceCoin> {
         let maxAskPrice = maxAsk[0]
         self.removeOrders(fromMindBid: minBidPrice, toMaxAsk: maxAskPrice, pair: pair)
       }
-      var book = [Double:Double]()
-      response.asks.forEach({ (level) in
-        book[-level[0]] = level[1]
-      })
-      response.bids.forEach({ (level) in
-        book[level[0]] = level[1]
-      })
-      self.updateBook(book: book, pair: pair)
+      self.updateBook(asks: response.asks, bids: response.bids, pair: pair)
     }, errorHandler:  {  error in
       print("Gor error for request: \(request)",error)
     })
