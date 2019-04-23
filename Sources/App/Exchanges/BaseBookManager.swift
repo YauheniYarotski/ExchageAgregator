@@ -10,12 +10,13 @@ import Vapor
 import Jobs
 
 class BaseBookManager<Pair:Hashable, Coin: Hashable> {
-  
+  let intervalUpdateFullBookViaRest: Double = 10
   static var typeName: String {
     return String(describing: self)
   }
   
   let serialQueue = DispatchQueue.init( label: "queue \(typeName)")
+  let concurrentQueue = DispatchQueue.init( label: "concurrentQueue \(typeName)", attributes: .concurrent)
   
   
   var pairs: Set<Pair>? {
@@ -51,17 +52,24 @@ class BaseBookManager<Pair:Hashable, Coin: Hashable> {
         if job != nil, let _ = self.pairs, let _ = self.coins {
           job?.stop()
           self.cooverForWsStartListenBooks()
+          self.startGetingRestBooks()
+          
         }
       }
     } else {
       self.cooverForWsStartListenBooks()
+      self.startGetingRestBooks()
     }
     
   }
   
-  func getPairsAndCoins() {}
-  func cooverForWsStartListenBooks() {}
-  func stopListenTickers() {}
+  private func startGetingRestBooks() {
+    Jobs.add(interval: .seconds(intervalUpdateFullBookViaRest), action: {
+      self.concurrentQueue.async() {
+        self.cooverForGetFullBook()
+      }
+    })
+  }
   
   func removeOrders(fromMindBid: Double, toMaxAsk: Double, pair: Pair) {
     serialQueue.async {
@@ -77,13 +85,24 @@ class BaseBookManager<Pair:Hashable, Coin: Hashable> {
   }
   
   
-  func updateBook(book:[Double:Double], pair: Pair) {
+  func updateBook(book:[Double:Double], pair: Pair, reloadFullBook: Bool = false) {
     serialQueue.async {
+      
+      if reloadFullBook {
+        self.books[pair] = book
+        return
+      }
+      
       if self.books[pair] == nil { self.books[pair] = [:] }
       book.forEach({ (priceLevel) in
         self.books[pair]?[priceLevel.key] = priceLevel.value > 0 ? priceLevel.value : nil
       })
     }
   }
+  
+  func getPairsAndCoins() {}
+  func cooverForWsStartListenBooks() {}
+  func stopListenTickers() {}
+  func cooverForGetFullBook() {}
   
 }

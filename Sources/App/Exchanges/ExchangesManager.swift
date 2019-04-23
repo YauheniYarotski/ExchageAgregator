@@ -18,7 +18,7 @@ class ExchangesManager {
   let bitfinexManager = BitfinexManager()
   let binanceManager = BinanceManager()
   //  let bitstampManager = BitstampManager()
-  //  let coinbaseProManager = CoinbaseProManager()
+  let coinbaseProManager = CoinbaseProManager()
   
   private var exchangesBooks = [ExchangeName:[CoinPair:[Double:Double]]]()
   
@@ -43,6 +43,13 @@ class ExchangesManager {
         self.updateBook(exchangeName: .binance, book: pairBook.value, pair: coinPair)
       })
     }
+    
+    coinbaseProManager.booksDidUpdate = { newBook in
+      newBook.forEach({ (pairBook) in
+        let coinPair = CoinPair(firstAsset: pairBook.key.firstAsset.rawValue, secondAsset: pairBook.key.secondAsset.rawValue)
+        self.updateBook(exchangeName: .coinbasePro, book: pairBook.value, pair: coinPair)
+      })
+    }
     //    bitstampManager.bookDidUpdate = {book in
     //      self.updateBook(exchangeName: "Bitstamp", book: book)
     //    }
@@ -56,7 +63,7 @@ class ExchangesManager {
     bitfinexManager.startListenBooks()
     binanceManager.startListenBooks()
     //    bitstampManager.startCollectData()
-    //    coinbaseProManager.startCollectData()
+        coinbaseProManager.startListenBooks()
   }
   
   func updateBook(exchangeName: ExchangeName, book: [Double:Double], pair: CoinPair) {

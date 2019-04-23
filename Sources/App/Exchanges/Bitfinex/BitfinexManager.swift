@@ -74,9 +74,9 @@ class BitfinexManager: BaseBookManager<BitfinexPair,BitfinexCoin> {
   
   internal override func cooverForWsStartListenBooks() {
     ws.startListenBooks()
-    Jobs.delay(by: .seconds(9), interval: .seconds(30)) {
-      self.restApi.getFullBook(for: "BTCUSD")
-    }
+  }
+  override func cooverForGetFullBook() {
+    restApi.getFullBook(for: "BTCUSD")
   }
   
   internal override func getPairsAndCoins() {

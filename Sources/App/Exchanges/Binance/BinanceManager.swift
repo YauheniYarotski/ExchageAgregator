@@ -55,10 +55,10 @@ class BinanceManager: BaseBookManager<BinancePair, BinanceCoin> {
   override func cooverForWsStartListenBooks() {
     super.cooverForWsStartListenBooks()
     ws.startListenBooks()
-    
-    Jobs.delay(by: .seconds(9), interval: .seconds(30)) {
-      self.getFullBook()
-    }
+  }
+  
+  override func cooverForGetFullBook() {
+    self.getFullBook()
   }
   
   func getFullBook() {

@@ -10,108 +10,51 @@ import Vapor
 import WebSocket
 
 class CoinbaseProWs: BaseWs {
-  
-  public enum ProductId: String, CaseIterable {
-    case BTCUSD = "BTC-USD"
-    case BTCEUR = "BTC-EUR"
-    case BTCGBP = "BTC-GBP"
-    case ETHUSD = "ETH-USD"
-    case ETHBTC = "ETH-BTC"
-    case ETHEUR = "ETH-EUR"
-    case ETHGBP = "ETH-GBP"
-    case LTCUSD = "LTC-USD"
-    case LTCBTC = "LTC-BTC"
-    case LTCEUR = "LTC-EUR"
-    case LTCGBP = "LTC-GBP"
-    case BCHUSD = "BCH-USD"
-    case BCHBTC = "BCH-BTC"
-    case BCHEUR = "BCH-EUR"
-    case BCHGBP = "BCH-GBP"
-    case ETCUSD = "ETC-USD"
-    case ETCBTC = "ETC-BTC"
-    case ETCEUR = "ETC-EUR"
-    case ETCGBP = "ETC-GBP"
-    case ZRXUSD = "ZRX-USD"
-    case ZRXBTC = "ZRX-BTC"
-    case ZRXEUR = "ZRX-EUR"
-    case BTCUSDC = "BTC-USDC"
-    case ETHUSDC = "ETH-USDC"
-    case BATUSDC = "BAT-USDC"
-    case ZECUSDC = "ZEC-USDC"
-  }
-  
-  public enum Channel: String {
-    case heartbeat, ticker, level2, user, matches, full
-  }
-  
-  public enum MessageType: String, CaseIterable {
-    case error = "error"
-    case subscribe = "subscribe"
-    case unsubscribe = "unsubscribe"
-    case subscriptions = "subscriptions"
-    case heartbeat = "heartbeat"
-    case ticker = "ticker"
-    case snapshot = "snapshot"
-    case update = "12update"
-    case received = "received"
-    case open = "open"
-    case done = "done"
-    case match = "match"
-    case change = "change"
-    case marginProfileUpdate = "margin_profile_update"
-    case activate = "activate"
-    case unknown = ""
-  }
-  
-  
+    
   var bookSnapshotResponse: ((_ bookSnapshotResponse: CoinbaseProBookSnapshot)->())?
   var bookChangesResponse: ((_ bookChangesResponse: CoinbaseProBookChanges)->())?
   var infoResponse: ((_ coinbaseProInfoResponse: CoinbaseProInfoResponse)->())?
   
-  func start() {
+  func startListenBooks() {
+    let pair = CoinbasePair(firstAsset: .btc, secondAsset: .usd)
+    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.level2.rawValue], product_ids: [pair.symbol])
     
-    let request = CoinbaseProRequest(type: MessageType.subscribe.rawValue, channels:  [Channel.level2.rawValue], product_ids: [ProductId.BTCUSD.rawValue])
     
-    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8), let ws = try? HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", maxFrameSize: 1 << 19, on: wsClientWorker).wait()
+    guard let encodedData = try? JSONEncoder().encode(request), let jsonString = String(bytes: encodedData, encoding: .utf8)
       else {
-        print("CoinbaseProWS is nil")
+        print("Can't parse json")
         return
     }
     
-    ws.send(jsonString)
+    self.ws?.close(code: WebSocketErrorCode.normalClosure)
     
-    ws.onError { (ws, error) in
-      print("error from ws coinbasePro",error)
-    }
     
-    ws.onCloseCode { (code) in
-      print("closing ws coinbasePro")
-    }
-    
-    ws.onText { ws, text in
-      //            print(text)
-      guard  let jsonData = text.data(using: .utf8) else {
-        print("Error with parsing coinbasepro ws response")
-        return
-      }
-      if let coinbaseProBookChanges = try? JSONDecoder().decode(CoinbaseProBookChanges.self, from: jsonData) {
-        self.bookChangesResponse?(coinbaseProBookChanges)
-      } else if let coinbaseProBookSnapshot = try? JSONDecoder().decode(CoinbaseProBookSnapshot.self, from: jsonData)  {
-        self.bookSnapshotResponse?(coinbaseProBookSnapshot)
-      } else if let coinbaseProInfoResponse = try? JSONDecoder().decode(CoinbaseProInfoResponse.self, from: jsonData)  {
-        self.infoResponse?(coinbaseProInfoResponse)
-      } else {
-        print("Error with parsing coinbase ws response:", text)
-        return
-      }
+    let _ = HTTPClient.webSocket(scheme: .wss, hostname: "ws-feed.pro.coinbase.com", maxFrameSize: 1 << 19, on: wsClientWorker).do { (ws) in
+      self.ws = ws
+      ws.send(jsonString)
       
+      ws.onText { ws, text in
+        //            print(text)
+        guard  let jsonData = text.data(using: .utf8) else {
+          print("Error with parsing coinbasepro ws response")
+          return
+        }
+        if let coinbaseProBookChanges = try? JSONDecoder().decode(CoinbaseProBookChanges.self, from: jsonData) {
+          self.bookChangesResponse?(coinbaseProBookChanges)
+        } else if let coinbaseProBookSnapshot = try? JSONDecoder().decode(CoinbaseProBookSnapshot.self, from: jsonData)  {
+          self.bookSnapshotResponse?(coinbaseProBookSnapshot)
+        } else if let coinbaseProInfoResponse = try? JSONDecoder().decode(CoinbaseProInfoResponse.self, from: jsonData)  {
+          self.infoResponse?(coinbaseProInfoResponse)
+        } else {
+          print("Error with parsing coinbase ws response:", text)
+          return
+        }
+        
+      }
     }
-    
-    
   }
   
 }
-
 
 
 // 1 first responce
@@ -159,3 +102,25 @@ struct CoinbaseProBookChanges: Content {
   let changes: [[String]]
 }
 
+public enum Channel: String {
+  case heartbeat, ticker, level2, user, matches, full
+}
+
+public enum MessageType: String, CaseIterable {
+  case error = "error"
+  case subscribe = "subscribe"
+  case unsubscribe = "unsubscribe"
+  case subscriptions = "subscriptions"
+  case heartbeat = "heartbeat"
+  case ticker = "ticker"
+  case snapshot = "snapshot"
+  case update = "12update"
+  case received = "received"
+  case open = "open"
+  case done = "done"
+  case match = "match"
+  case change = "change"
+  case marginProfileUpdate = "margin_profile_update"
+  case activate = "activate"
+  case unknown = ""
+}
