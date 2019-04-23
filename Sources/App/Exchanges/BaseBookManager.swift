@@ -100,6 +100,35 @@ class BaseBookManager<Pair:Hashable, Coin: Hashable> {
     }
   }
   
+  func updateBook(asks: [[Double]], bids: [[Double]], pair: Pair, reloadFullBook: Bool = false) {
+    serialQueue.async {
+      if reloadFullBook || self.books[pair] == nil {
+        self.books[pair] = [:]
+      }
+      
+      bids.forEach { (bid) in
+        let price = bid[0]
+        let amount = bid[1]
+        if amount > 0 {
+          self.books[pair]?[price] = amount
+        } else {
+          self.books[pair]?[price] = nil
+        }
+      }
+      
+      asks.forEach { (ask) in
+        let price = -ask[0]
+        let amount = ask[1]
+        if amount > 0 {
+          self.books[pair]?[price] = amount
+        } else {
+          self.books[pair]?[price] = nil
+        }
+      }
+    }
+    
+  }
+  
   func getPairsAndCoins() {}
   func cooverForWsStartListenBooks() {}
   func stopListenTickers() {}

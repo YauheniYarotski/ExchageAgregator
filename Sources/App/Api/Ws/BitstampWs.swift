@@ -11,30 +11,31 @@ import WebSocket
 
 class BitstampWs: BaseWs {
   
-  var reponseHandler: ((_ response: BitstampBookResponse)->())?
+  var didGetBooks: ((_ response: BitstampBookResponse)->())?
   
   func startListenBooks() {
+    let pair = BitstampPair(firstAsset: .btc, secondAsset: .usd)
+    let bookRequest: [String : Any] = ["event":"bts:subscribe", "data":["channel": "diff_order_book_\(pair.urlSymbol)"]]
+    guard let bookRequestJsonData = try?  JSONSerialization.data(
+      withJSONObject: bookRequest,
+      options: []
+      ) else {
+        print("can't parse bitstamp json:", pair)
+        return
+    }
+    
     self.ws?.close(code: WebSocketErrorCode.normalClosure)
+    
     let _ = HTTPClient.webSocket(scheme: .wss, hostname: "ws.bitstamp.net", on: wsClientWorker).do { (ws) in
       self.ws = ws
-        let bookRequest: [String : Any] = ["event":"bts:subscribe", "data":["channel": "diff_order_book_btcusd"]]
-        guard let bookRequestJsonData = try?  JSONSerialization.data(
-          withJSONObject: bookRequest,
-          options: []
-          ) else {
-            print("can't parse bitstamp json:", pair)
-            return
-        }
-        ws.send(bookRequestJsonData)
-     
-      
+      ws.send(bookRequestJsonData)
       ws.onText { ws, text in
         guard  let jsonData = text.data(using: .utf8) else {
           print("Error with parsing bitstamp ws response")
           return
         }
         if let bookResponse = try? JSONDecoder().decode(BitstampBookResponse.self, from: jsonData) {
-          self.reponseHandler?(bookResponse)
+          self.didGetBooks?(bookResponse)
         } else if let _: BitstampInfoResponse = try? JSONDecoder().decode(BitstampInfoResponse.self, from: jsonData)  {
           //do nothing for now
         }
@@ -43,13 +44,7 @@ class BitstampWs: BaseWs {
           return
         }
       }
-      
-      }.catch { (error) in
-        print("\(self) send error:",error)
     }
-    
-    
-    
   }
   
 }

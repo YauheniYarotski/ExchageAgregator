@@ -9,61 +9,56 @@ import Foundation
 import Jobs
 
 
-class BitstampManager: BaseExchangeManager {
+class BitstampManager: BaseBookManager<BitstampPair,BitstampCoin> {
   
   let restApi = BitstampRest()
+  let ws = BitstampWs()
   
   override init() {
     super.init()
-    let ws = BitstampWs()
-    ws.bookResponse = {  response in
-      self.updateBook(asks: response.data.asks, bids: response.data.bids, pair: response.symbol)
+    
+    ws.didGetBooks = {  response in
+      guard let pair = BitstampPair(urlString: response.symbol) else {return}
+      self.updateBook(asks: response.data.asks, bids: response.data.bids, pair: pair)
     }
-    api = ws
     
     restApi.didGetFullBook = { book, pair in
-      self.updateBook(asks: book.asks, bids: book.bids, pair: pair, deleteOldData: true)
+      self.updateBook(asks: book.asks, bids: book.bids, pair: pair, reloadFullBook: true)
     }
   }
   
-  override func startCollectData() {
-    super.startCollectData()
-    
-    Jobs.delay(by: .seconds(6), interval: .seconds(30)) {
-       self.restApi.getFullBook(for: "btcusd")
-    }
-   
+  override func cooverForWsStartListenBooks() {
+    ws.startListenBooks()
   }
   
+  override func cooverForGetFullBook() {
+    self.restApi.getFullBook(for: BitstampPair(firstAsset: .btc, secondAsset: .usd))
+  }
   
-  func updateBook(asks: [[Double]], bids: [[Double]], pair: String, deleteOldData: Bool = false) {
+  override func getPairsAndCoins() {
+    let request = RestRequest.init(hostName: "www.bitstamp.net", path: "/api/v2/trading-pairs-info/")
     
-    var pairBook = deleteOldData ? [:] : book[pair] ?? [:]
-    for bid in bids {
-      let price = bid[0]
-      let amount = bid[1]
-      if amount > 0 {
-        pairBook[price] = amount
-      } else {
-        pairBook[price] = nil
+    GenericRest.sendRequestToGetArray(request: request, completion: { (response) in
+      var pairs = Set<BitstampPair>()
+      var coins = Set<BitstampCoin>()
+      for draftArrayPair in response {
+        if let dictPair = draftArrayPair as? [String: Any],
+          let symbol = dictPair["name"] as? String,
+          let pair = BitstampPair(string: symbol) {
+          pairs.insert(pair)
+          coins.insert(pair.firstAsset)
+          coins.insert(pair.secondAsset)
+        } else {
+          print("Waring!: not all bitstamp asstets updated:",draftArrayPair)
+        }
       }
-    }
-    
-    for ask in asks {
-      let price = -ask[0]
-      let amount = ask[1]
-      if amount > 0 {
-        pairBook[price] = amount
-      } else {
-        pairBook[price] = nil
-      }
-    }
-    
-    book[pair] = pairBook
-    
-//    print("bids",pairBook.filter({$0.key > 0}).count)
-//    print("asks",pairBook.filter({$0.key < 0}).count)
+      self.pairs = pairs.count > 5 ? pairs : nil
+      self.coins = coins.count > 5 ? coins : nil
+    }, errorHandler:  {  error in
+      print("Gor error for request: \(request)",error)
+    })
   }
+
   
 }
 

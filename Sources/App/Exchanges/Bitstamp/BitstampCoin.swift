@@ -6,7 +6,7 @@ struct BitstampPair {
   let secondAsset: BitstampCoin
   
   var symbol: String {
-    return "\(firstAsset.rawValue+PoloniexPair.separator)\(secondAsset.rawValue)"
+    return "\(firstAsset.rawValue+BitstampPair.separator)\(secondAsset.rawValue)"
   }
   var urlSymbol: String {
     return "\(firstAsset.rawValue)\(secondAsset.rawValue)".lowercased()
